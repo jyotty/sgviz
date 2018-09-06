@@ -219,20 +219,28 @@ class Sgviz::Generator < Gviz
     id    = :"#{from}_#{to}"
     color = (in_or_out == :inbound ? "#003E2F" : "#045280")
 
+    opts = {
+      style:     "dashed",
+      color:     color,
+      fontname:  options.fontname,
+      fontsize:  (options.fontsize * 0.75),
+      fontcolor: color
+    }
+
+    opts.merge!(dir: 'both', color: "#003E2F:#045280", style: "solid") if traffic_map.key? id
+
     traffic_map[id] = if traffic_map[id]
       [traffic_map[id], route_label(ip_permission)].join("\\n")
     else
       route_label(ip_permission)
     end
 
-    edge id,
-      label:     traffic_map[id],
-      style:     "bold",
-      arrowhead: (in_or_out == :inbound ? "normal" : "onormal"),
-      color:     color,
-      fontname:  options.fontname,
-      fontsize:  (options.fontsize * 0.75),
-      fontcolor: color
+
+    opts.merge!(arrowtail: "inv") if in_or_out == :outbound
+    opts.merge!(arrowhead: "normal") if in_or_out == :inbound
+
+    opts.merge!(label: traffic_map[id])
+    edge id, **opts
   end
 
   def traffic_map
